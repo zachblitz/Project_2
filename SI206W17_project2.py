@@ -16,6 +16,7 @@ import requests
 import tweepy
 import twitter_info # Requires you to have a twitter_info file in this directory
 from bs4 import BeautifulSoup
+import re
 
 ## Tweepy authentication setup
 ## Fill these in in the twitter_info.py file
@@ -33,19 +34,33 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
 ## Write the code to begin your caching pattern setup here.
 
+twitter_cache_data = '206project2_caching.json'
 
+try:
+
+	twitter_cache_file = open(twitter_cache_data, 'r')
+	twitter_cache_contents = twitter_cache_file.read()
+	CACHE_DICTION = json.loads(twitter_cache_contents)
+	twitter_cache_file.close()
+
+except:
+	CACHE_DICTION = {}
 
 
 ## PART 1 - Define a function find_urls.
 ## INPUT: any string
 ## RETURN VALUE: a list of strings that represents all of the URLs in the input string
 
+
+
 ## For example: 
 ## find_urls("http://www.google.com is a great site") should return ["http://www.google.com"]
 ## find_urls("I love looking at websites like http://etsy.com and http://instagram.com and stuff") should return ["http://etsy.com","http://instagram.com"]
 ## find_urls("the internet is awesome #worldwideweb") should return [], empty list
 
-
+def find_urls(x):
+	list_of_strings = re.findall("https?://[^\s]*?\...[^\s]*", x)
+	return(list_of_strings)
 
 
 
@@ -61,6 +76,16 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 ## Start with this page: https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All  
 ## End with this page: https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All&page=11 
 
+def get_umsi_data():
+	if "umsi_directory_data" in CACHE_DICTION:
+		return CACHE_DICTION["umsi_directory_data"]
+
+	base_url = 'https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All&page='
+	strings_of_html = []
+	for page_number in range(12):
+		page_url = base_url + str(page_number)
+		html_text = requests.get(page_url, headers = {'User-Agent': 'SI_CLASS'}).text
+		strings_of_html.append(html_text)
 
 
 
